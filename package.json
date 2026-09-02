@@ -1,0 +1,11 @@
+{
+  "name": "liron-wishes",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open /Liron.dc.html"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
+}

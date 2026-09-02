@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"}}
+</script>
+<script src="./content/letter.js"></script>
+<script src="./content/glassExplanation.js"></script>
+<script src="./projectSettings.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics=""><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700&amp;family=Frank+Ruhl+Libre:wght@300;400;500&amp;display=swap" rel="stylesheet"><style>
+html,body{margin:0;padding:0;background:#000;overscroll-behavior:none}
+body{font-family:Heebo,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#f0c987;text-decoration:none}a:hover{color:#ffdca6}
+input{font-family:inherit}
+@keyframes om-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes om-fade{from{opacity:0}to{opacity:1}}
+@keyframes om-breathe{0%,100%{opacity:.25}50%{opacity:.85}}
+@keyframes om-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes om-sheen{0%{transform:translateX(-130%)}100%{transform:translateX(230%)}}
+@keyframes om-glass-reveal{from{opacity:0;transform:translateY(12px);background:rgba(255,255,255,0);border-color:rgba(255,255,255,0);box-shadow:0 4px 30px rgba(0,0,0,0);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}to{opacity:1;transform:none;background:var(--glass-surface);border-color:var(--glass-border);box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur))}}
+@keyframes om-glass-dismiss{from{opacity:1;transform:none;background:var(--glass-surface);border-color:var(--glass-border);box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur))}to{opacity:0;transform:translateY(-12px);background:rgba(255,255,255,0);border-color:rgba(255,255,255,0);box-shadow:0 4px 30px rgba(0,0,0,0);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}}
+.om-glass-panel{--glass-surface:rgba(255,255,255,.035);--glass-border:rgba(255,255,255,.14);--glass-blur:6.7px;background:var(--glass-surface);border:1px solid var(--glass-border);border-radius:16px;box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));animation:om-glass-reveal 1.6s cubic-bezier(.2,.7,.2,1) both}
+.om-glass-panel--leaving{pointer-events:none;animation:om-glass-dismiss .65s cubic-bezier(.4,0,.2,1) forwards}
+</style></helmet>
+<div style="position:fixed;inset:0;background:#000;overflow:hidden">
+<x-import component-from-global-scope="particle-stage" from="./particle-stage.js" hint-size="100%,100%" style="position:absolute;inset:0"></x-import>
+<div ref="{{ fwRef }}" style="position:absolute;inset:0;pointer-events:none;z-index:1"></div>
+<div style="position:absolute;inset:0;pointer-events:none;background:transparent"></div>
+
+<div dir="rtl" style="position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 22px calc(30px + env(safe-area-inset-bottom));box-sizing:border-box;color:#f7ecdd">
+
+<sc-if value="{{ showHint }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ continueTap }}" style="pointer-events:auto;cursor:pointer;animation:om-breathe 3.4s ease-in-out infinite;display:flex;flex-direction:column;align-items:center;gap:9px;margin-bottom:6px">
+<div style="width:1px;height:22px;background:linear-gradient(to bottom,transparent,rgba(247,236,221,.6))"></div>
+<div style="font:300 13px/1 Heebo;letter-spacing:.32em;color:rgba(247,236,221,.8)">{{ hintLabel }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ atLetter }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:34px 26px;box-sizing:border-box">
+<div class="{{ letterGlassClass }}" style="width:100%;max-width:430px;padding:30px 24px;box-sizing:border-box">
+<div style="font:400 11px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};margin-bottom:22px;text-align:center">{{ letterEyebrow }}</div>
+<p style="font:300 clamp(19px,5.2vw,24px)/1.9 'Frank Ruhl Libre',serif;color:#f7ecdd;margin:0;text-align:center;text-wrap:pretty">{{ letterBody }}</p>
+<div style="font:300 12px/1 Heebo;letter-spacing:.3em;color:rgba(247,236,221,.32);margin-top:30px;text-align:center">{{ letterFooter }}</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ atClues }}" hint-placeholder-val="{{ false }}">
+<div style="pointer-events:none;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:16px;padding:34px 24px calc(64px + env(safe-area-inset-bottom));box-sizing:border-box">
+<div style="display:flex;gap:8px;margin-bottom:4px">
+<div style="width:6px;height:6px;border-radius:50%;background:{{ dotPlace }}"></div>
+<div style="width:6px;height:6px;border-radius:50%;background:{{ dotAct }}"></div>
+</div>
+<div style="font:400 11px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};text-align:center;animation:om-fade 1s both">{{ clueLabel }}</div>
+<div style="font:400 clamp(23px,6.4vw,28px)/1.35 'Frank Ruhl Libre',serif;text-align:center;color:#f7ecdd;animation:om-rise .9s cubic-bezier(.2,.7,.2,1) both;text-shadow:0 1px 14px rgba(4,3,8,.85)">{{ cluePromptMain }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ clueOpen }}" hint-placeholder-val="{{ false }}">
+<div style="pointer-events:auto;position:absolute;inset:0;background:rgba(6,5,10,.8);backdrop-filter:blur(3px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 24px 34px;box-sizing:border-box;overflow-y:auto;animation:om-fade .5s ease both">
+<div onClick="{{ closeClue }}" style="position:absolute;top:calc(18px + env(safe-area-inset-top));left:22px;cursor:pointer;font:300 12px/1 Heebo;letter-spacing:.24em;color:rgba(247,236,221,.5)">חזרה</div>
+<div style="width:100%;max-width:390px;display:flex;flex-direction:column;gap:22px">
+<div style="position:relative;flex:0 0 auto;width:min(78vw,320px);aspect-ratio:9/12;max-height:46vh;align-self:center;border:1px solid {{ accentBorder }};background:#0a0810;overflow:hidden">
+<video ref="{{ videoRef }}" src="{{ clueVideoSrc }}" playsinline="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
+<sc-if value="{{ videoIdle }}" hint-placeholder-val="{{ true }}">
+<div onClick="{{ playVideo }}" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:22px;cursor:pointer;background:radial-gradient(70% 50% at 50% 60%,{{ accentGlowBg }},rgba(10,8,16,.6) 72%)">
+<div style="width:52px;height:52px;border:1px solid rgba(247,236,221,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;font:300 15px/1 Heebo;padding-right:2px">▶</div>
+<div style="font:600 10px/1 Heebo;letter-spacing:.34em;color:{{ accentText }}">{{ clueKicker }}</div>
+<div style="font:300 12px/1.8 Heebo;color:rgba(247,236,221,.42);max-width:230px">{{ clueVideoNote }}</div>
+</div>
+</sc-if>
+<div style="position:absolute;bottom:0;right:0;left:0;height:2px;background:rgba(247,236,221,.15)"><div style="height:100%;background:linear-gradient(90deg,{{ accentSolid }},{{ accentSolid2 }});transition:width .1s linear;width:{{ videoPct }}"></div></div>
+</div>
+<sc-if value="{{ askGuess }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px;animation:om-rise .8s ease both;margin-top:auto">
+<div style="font:400 clamp(20px,5.6vw,24px)/1.3 'Frank Ruhl Libre',serif;text-align:center">{{ cluePrompt }}</div>
+<input value="{{ guess }}" onChange="{{ onGuess }}" onKeyDown="{{ onGuessKey }}" placeholder="הניחוש שלך" dir="rtl" style="width:100%;box-sizing:border-box;background:transparent;border:0;border-bottom:1px solid {{ accentBorder }};color:#f7ecdd;font:300 20px/1 Heebo;padding:12px 4px;text-align:center;outline:none">
+<div onClick="{{ submitGuess }}" style="cursor:pointer;text-align:center;font:600 11px/1 Heebo;letter-spacing:.34em;color:{{ accentSolid }};padding:15px;border:1px solid {{ accentBorder }}" style-hover="background:rgba(255,255,255,.06)">שליחה</div>
+<sc-if value="{{ wrong }}" hint-placeholder-val="{{ false }}">
+<div style="animation:om-shake .5s ease;font:300 13px/1.7 Heebo;color:rgba(247,236,221,.55);text-align:center">לא בדיוק. תסתכלי שוב על הסרטון — החידה נשארת פתוחה.</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ solvedFlash }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:calc(64px + env(safe-area-inset-bottom));animation:om-fade .6s ease both">
+<div style="text-align:center">
+<div style="font:400 11px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};margin-bottom:14px">נפתח</div>
+<div style="font:400 clamp(26px,7.4vw,34px)/1.25 'Frank Ruhl Libre',serif">{{ solvedFlash }}</div>
+</div>
+</div>
+</sc-if>
+
+
+<sc-if value="{{ atWhy }}" hint-placeholder-val="{{ false }}">
+<div style="pointer-events:auto;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:30px 30px calc(64px + env(safe-area-inset-bottom))">
+
+<div onClick="{{ openWhy }}" style="cursor:pointer;animation:om-rise 1.3s ease both;text-align:center;padding:16px 26px;border-bottom:1px solid {{ accentBorderStrong }};font:400 clamp(23px,6.4vw,29px)/1.3 'Frank Ruhl Libre',serif;color:#f7ecdd" style-hover="border-color:{{ accentSolid }}">למה דווקא זכוכית?</div></div>
+</sc-if>
+
+<sc-if value="{{ whyOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ finishWhy }}" style="pointer-events:auto;cursor:pointer;position:absolute;inset:0;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:34px 26px;box-sizing:border-box">
+<div class="{{ glassExplanationClass }}" style="width:100%;max-width:430px;padding:30px 24px;box-sizing:border-box">
+<div style="font:400 11px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};text-align:center;margin-bottom:24px">{{ glassExplanationEyebrow }}</div>
+<p style="font:300 clamp(18px,5.2vw,23px)/1.95 'Frank Ruhl Libre',serif;margin:0;text-align:center;text-wrap:pretty;color:#f7ecdd">{{ glassExplanationBody }}</p>
+<div style="font:300 12px/1 Heebo;letter-spacing:.3em;color:rgba(247,236,221,.32);margin-top:32px;text-align:center">{{ glassExplanationFooter }}</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ atFinal }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ restart }}" aria-label="להתחיל מחדש" style="pointer-events:auto;cursor:pointer;animation:om-rise 1.3s ease both;width:52px;height:52px;border-radius:50%;border:1px solid {{ accentBorderStrong }};display:flex;align-items:center;justify-content:center" style-hover="border-color:{{ accentSolid }}">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="display:block">
+<path d="M20 11a8 8 0 1 0-2.34 5.66" stroke="#f7ecdd" stroke-width="1.6" stroke-linecap="round"/>
+<path d="M20 5v6h-6" stroke="#f7ecdd" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;wishesMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;letter&quot;,&quot;cards&quot;],&quot;default&quot;:&quot;letter&quot;,&quot;tsType&quot;:&quot;'letter' | 'cards'&quot;,&quot;section&quot;:&quot;Experience&quot;},&quot;showHints&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Experience&quot;},&quot;glow&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;min&quot;:0.3,&quot;max&quot;:2.2,&quot;step&quot;:0.1,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Particles&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#c9a6ff&quot;,&quot;options&quot;:[&quot;#c9a6ff&quot;,&quot;#b083f2&quot;,&quot;#9a6bd6&quot;,&quot;#e6d4ff&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Particles&quot;}}">
+const WISHES = [["שנה של","שקט טוב"], ["שנה של","הרבה אור"], ["ושתמיד","נצחק ככה"]];
+const GLASS = [
+  { spec: { cloud: 'vase1', scale: 1 }, label: 'אגרטל' },
+  { spec: { cloud: 'glass', scale: 0.9, spin: 0.6 }, label: 'כוס' },
+  { spec: { cloud: 'plate', scale: 1.0, tiltX: 0.3, spin: 0.45 }, label: 'צלחת' },
+  { spec: { cloud: 'vase2', scale: 1 }, label: 'אובייקט מזכוכית' }
+];
+const TAP_STEPS = [0, 1, 2, 3, 4, 5, 6, 7];
+const PLACE_RE = /קיסרי|caesare|kesaria|keisaria/i;
+const ACT_RE = /זכוכ|נפיח|glass|blow/i;
+
+class Component extends DCLogic {
+  state = {
+    step: 0, sub: 0, hint: false,
+    clue: null, guess: '', wrong: false, vid: 0, playing: false, seen: {},
+    placeDone: false, actDone: false, solvedFlash: null, whyOpen: false, envelopeFormed: false, letterLeaving: false, whyLeaving: false, busy: true
+  };
+
+  componentDidMount() {
+    this._t = [];
+    this._fireworksAudioUnlocked = false;
+    this._unlockFireworksAudio = () => { this._fireworksAudioUnlocked = true; this._resumeFireworksAudio(); };
+    document.addEventListener('pointerdown', this._unlockFireworksAudio, { once: true, capture: true });
+    this._onTap = e => this.advance(e.detail && e.detail.y);
+    document.addEventListener('stagetap', this._onTap);
+    this._find();
+    import('./fireworks.es.js').then(m => {
+      if (!this._fwEl) return;
+      const accent = this.props.accent || '#c9a6ff';
+      const hue = Math.round(hueOf(accent) * 360);
+      const fireworkSound = window.projectSettings.particles.audio.fireworks;
+      this._fireworks = new m.Fireworks(this._fwEl, {
+        hue: { min: hue - 26, max: hue + 30 }, rocketsPoint: { min: 25, max: 75 },
+        opacity: 0.4, acceleration: 1.02, friction: 0.97, gravity: 1.1,
+        particles: 32, explosion: 4, brightness: { min: 65, max: 90 }, decay: { min: 0.015, max: 0.03 },
+        delay: { min: 90, max: 150 }, traceLength: 3, traceSpeed: 6, autoresize: true,
+        sound: fireworkSound
+      });
+      this._resumeFireworksAudio();
+    });
+  }
+  componentWillUnmount() {
+    document.removeEventListener('stagetap', this._onTap);
+    this._unlockFireworksAudio && document.removeEventListener('pointerdown', this._unlockFireworksAudio, true);
+    (this._t || []).forEach(clearTimeout);
+    this._fireworks && this._fireworks.stop(true);
+  }
+  later(fn, ms) { const id = setTimeout(fn, ms); this._t.push(id); return id; }
+
+  _find(n = 0) {
+    const el = document.querySelector('particle-stage');
+    if (el && el.morphTo) {
+      this.stage = el;
+      ['giftbox3d', 'vase1', 'glass', 'plate', 'vase2', 'pin', 'lamb'].forEach(k => el.loadCloud(k, 'clouds/' + k + '.json'));
+      this.applyProps();
+      this.later(() => this.setState({ busy: false, hint: true }), 900);
+      return;
+    }
+    if (n < 120) this.later(() => this._find(n + 1), 120);
+  }
+
+  applyProps() {
+    const s = this.stage; if (!s) return;
+    s.setGlow(this.props.glow ?? 1);
+    const hex = this.props.accent || '#f0c987';
+    const h = hueOf(hex);
+    s.ready ? s.ready.then(() => s.setPalette(h - 0.03, h + 0.035)) : null;
+  }
+  componentDidUpdate(prev) {
+    if (prev.glow !== this.props.glow || prev.accent !== this.props.accent) this.applyProps();
+  }
+
+  /* ---- scene: what the particles are, per step ---- */
+  scene(step, sub) {
+    const s = this.stage; if (!s) return;
+    const mode = this.props.wishesMode || 'letter';
+    this.setState({ busy: true, hint: false });
+    let dur = 2300;
+    if (step === 0) { s.playInitSound(); s.morphTo({ shape: 'envelope', spin: 0.35 }, 2900); dur = 2900; }
+    else if (step === 1) { s.morphTo({ lines: ['מזל טוב !!!'], fit: 0.78 }, 1800); this.later(() => this.startFireworks(), 1850); dur = 2400; }
+    else if (step === 2) s.morphTo({ shape: 'heart' }, 2100), dur = 2100;
+    else if (step === 3) s.morphTo({ lines: ['אני אוהב אותך', 'הכי בעולם'], fit: 0.82 }, 2000), dur = 2000;
+    else if (step === 4) {
+      if (mode === 'cards') s.morphTo({ lines: WISHES[sub], fit: 0.7 }, 1800), dur = 1800;
+      else s.morphTo({ shape: 'cloud', spin: 0.25 }, 2400), dur = 2400;
+    }
+    else if (step === 5) s.morphTo({ cloud: 'giftbox3d', scale: 0.92, spin: 0.7 }, 2600), dur = 2600;
+    else if (step === 6) {
+      if (sub === 0) s.morphTo({ cloud: 'pin', scale: 0.9, spin: 0.65 }, 2400), dur = 2400;
+      else s.morphTo({ lines: ['?'], fit: 0.34 }, 2000), dur = 2000;
+    }
+    else if (step === 7) s.morphTo(GLASS[sub].spec, 2500), dur = 2500;
+    else if (step === 8) s.morphTo({ shape: 'cloud', spin: 0.2 }, 2400), dur = 2400;
+    else if (step === 9) { s.morphTo({ cloud: 'lamb', scale: 1, spin: 0.55 }, 2600); this.startFireworks(); dur = 2600; }
+    if (step !== 9) this.stopFireworks();
+    if (step === 8) this.later(() => this.setState({ busy: false, whyOpen: true }), dur + 300);
+    else this.later(() => this.setState({ busy: false, hint: true }), dur + 500);
+  }
+
+  _resumeFireworksAudio() {
+    const context = this._fireworks && this._fireworks.sound && this._fireworks.sound.audioContext;
+    if (this._fireworksAudioUnlocked && context && context.state === 'suspended') context.resume().catch(() => {});
+  }
+  startFireworks() { this._resumeFireworksAudio(); this._fireworks && this._fireworks.start(); }
+  stopFireworks() { this._fireworks && this._fireworks.stop(); }
+
+  restart() {
+    this.stopFireworks();
+    (this._t || []).forEach(clearTimeout); this._t = [];
+    this.setState({
+      step: 0, sub: 0, hint: false, clue: null, guess: '', wrong: false, vid: 0, playing: false,
+      seen: {}, placeDone: false, actDone: false, solvedFlash: null, whyOpen: false, envelopeFormed: true, letterLeaving: false, whyLeaving: false, busy: true
+    });
+    this.later(() => this.scene(0, 0), 700);
+  }
+
+  go(step, sub = 0) { this.setState({ step, sub }); this.scene(step, sub); }
+
+  advance(y) {
+    const { step, sub, clue, whyOpen, envelopeFormed, letterLeaving, whyLeaving, busy } = this.state;
+    if (clue || whyOpen || letterLeaving || whyLeaving || busy) return;
+    if (!TAP_STEPS.includes(step)) return;
+    // restricted to the bottom band so tapping never fights orbit/zoom drag on the shape.
+    if (y != null && y < window.innerHeight * 0.8 && (step !== 0 || envelopeFormed)) return;
+    const s = this.stage;
+    if (step === 0) {
+      if (!envelopeFormed) {
+        this.setState({ envelopeFormed: true });
+        this.scene(0, 0);
+        return;
+      }
+      s && s.burst(0.75);
+      this.later(() => this.go(1), 260);
+      return;
+    }
+    if (step === 1) return this.go(2);
+    if (step === 2) { s && s.burst(0.5); this.later(() => this.go(3), 240); return; }
+    if (step === 3) return this.go(4);
+    if (step === 4) {
+      const cards = (this.props.wishesMode || 'letter') === 'cards';
+      if (cards && sub < WISHES.length - 1) return this.go(4, sub + 1);
+      return this.closeLetter();
+    }
+    if (step === 5) { s && s.burst(1); this.later(() => this.go(6), 320); return; }
+    if (step === 6) {
+      if (window.projectSettings.experience.skipClueGate) return this.go(7, 0);
+      this.openClue(sub === 0 ? 'place' : 'act');
+      return;
+    }
+    if (step === 7) {
+      if (sub < GLASS.length - 1) return this.go(7, sub + 1);
+      return this.go(8);
+    }
+  }
+
+  closeLetter() {
+    if (this.state.letterLeaving) return;
+    this.setState({ letterLeaving: true, hint: false });
+    this.later(() => { this.setState({ letterLeaving: false }); this.go(5); }, 650);
+  }
+
+  finishWhy = () => {
+    if (this.state.whyLeaving) return;
+    this.setState({ whyLeaving: true });
+    this.later(() => {
+      this.setState({ whyOpen: false, whyLeaving: false });
+      this.go(9);
+    }, 650);
+  };
+
+  /* ---- clues ---- */
+  openClue(which) {
+    this._videoEl && this._videoEl.pause();
+    const seen = this.state.seen[which];
+    this.setState({ clue: which, guess: '', wrong: false, vid: seen ? 100 : 0, playing: false });
+  }
+  videoRef = el => {
+    this._videoEl = el;
+    if (el) { el.addEventListener('timeupdate', this.onVideoTime); el.addEventListener('ended', this.onVideoEnded); }
+  };
+  playVideo = () => {
+    const v = this._videoEl;
+    if (!v || this.state.playing) return;
+    if (this.state.seen[this.state.clue]) v.currentTime = 0;
+    v.play();
+    this.setState({ playing: true });
+  };
+  onVideoTime = () => {
+    const v = this._videoEl;
+    if (!v || !v.duration) return;
+    this.setState({ vid: (v.currentTime / v.duration) * 100 });
+  };
+  onVideoEnded = () => {
+    this.setState(st => ({ playing: false, vid: 100, seen: { ...st.seen, [st.clue]: true } }));
+  };
+  submitGuess = () => {
+    const { clue, guess } = this.state;
+    const ok = clue === 'place' ? PLACE_RE.test(guess) : ACT_RE.test(guess);
+    if (!ok) { this.setState({ wrong: true }); return; }
+    const s = this.stage; s && s.burst(0.9);
+    const label = clue === 'place' ? 'קיסריה' : 'נפיחת זכוכית';
+    const done = clue === 'place' ? { placeDone: true } : { actDone: true };
+    this.setState({ ...done, clue: null, guess: '', wrong: false, solvedFlash: label });
+    this.later(() => {
+      this.setState({ solvedFlash: null });
+      const both = (this.state.placeDone && this.state.actDone);
+      if (both) this.go(7, 0); else this.go(6, 1);
+    }, 2100);
+  };
+
+  renderVals() {
+    const st = this.state, mode = this.props.wishesMode || 'letter';
+    const content = window.projectContent || {};
+    const letter = content.letter || {}, glassExplanation = content.glassExplanation || {};
+    const place = st.clue === 'place';
+    const hintable = TAP_STEPS.includes(st.step);
+    const accent = this.props.accent || '#c9a6ff';
+    const accentText = hexToRgba(accent, 0.78);
+    const accentBorder = hexToRgba(accent, 0.32);
+    const accentBorderStrong = hexToRgba(accent, 0.55);
+    return {
+      fwRef: el => { this._fwEl = el; },
+      videoRef: this.videoRef,
+      letterEyebrow: letter.eyebrow || '', letterBody: letter.body || '', letterFooter: letter.footer || '',
+      glassExplanationEyebrow: glassExplanation.eyebrow || '', glassExplanationBody: glassExplanation.body || '', glassExplanationFooter: glassExplanation.footer || '',
+      letterGlassClass: st.letterLeaving ? 'om-glass-panel om-glass-panel--leaving' : 'om-glass-panel',
+      glassExplanationClass: st.whyLeaving ? 'om-glass-panel om-glass-panel--leaving' : 'om-glass-panel',
+      accentText, accentBorder, accentBorderStrong, accentSolid: accent,
+      accentSolid2: hexToRgba(accent, 0.72), accentGlowBg: hexToRgba(accent, 0.18),
+      showHint: (this.props.showHints ?? true) && st.hint && hintable && !st.clue && !st.whyOpen && !st.solvedFlash,
+      hintLabel: st.step === 6 ? 'לפתיחה' : 'להמשך',
+      atLetter: st.step === 4 && mode === 'letter',
+      atClues: st.step === 6 && !st.clue && !st.solvedFlash,
+      clueLabel: st.sub === 0 ? 'חידה ראשונה' : 'חידה שנייה',
+      cluePromptMain: st.sub === 0 ? 'לאן נוסעים?' : 'מה אנחנו עושים שם?',
+      dotPlace: st.placeDone ? accent : 'rgba(247,236,221,.28)',
+      dotAct: st.actDone ? accent : 'rgba(247,236,221,.28)',
+      openCurrentClue: () => this.openClue(st.sub === 0 ? 'place' : 'act'),
+      atGlass: st.step === 7,
+      atWhy: false,
+      whyOpen: st.whyOpen,
+      atFinal: st.step === 9,
+      restart: () => this.restart(),
+      finishWhy: this.finishWhy,
+      solvedFlash: st.solvedFlash,
+      clueOpen: !!st.clue,
+      clueKicker: place ? 'סרטון ראשון' : 'סרטון שני',
+      clueVideoNote: place ? 'לחצו לצפייה' : 'לחצו לצפייה',
+      clueVideoSrc: place ? '/videos/caesaria.mp4' : '/videos/glass-blow.mp4',
+      videoIdle: !st.playing && !st.seen[st.clue],
+      cluePrompt: place ? 'לאן נוסעים?' : 'מה אנחנו עושים שם?',
+      videoPct: st.vid.toFixed(0) + '%',
+      askGuess: !!st.seen[st.clue] && !st.playing,
+      guess: st.guess,
+      wrong: st.wrong,
+      glassLabel: GLASS[Math.min(st.sub, GLASS.length - 1)].label,
+      glassCount: (st.sub + 1) + ' / ' + GLASS.length,
+      closeClue: () => { this._videoEl && this._videoEl.pause(); this.setState({ clue: null, playing: false, wrong: false }); },
+      playVideo: this.playVideo,
+      submitGuess: this.submitGuess,
+      onGuess: e => this.setState({ guess: e.target.value, wrong: false }),
+      onGuessKey: e => { if (e.key === 'Enter') this.submitGuess(); },
+      openWhy: () => { this.setState({ whyOpen: true }); const s = this.stage; s && s.morphTo({ shape: 'cloud', spin: 0.18, scale: 1.15 }, 2600); },
+      continueTap: () => this.advance()
+    };
+  }
+}
+
+function hexToRgba(hex, a) {
+  const n = (hex || '#f0c987').replace('#', '');
+  const r = parseInt(n.slice(0, 2), 16), g = parseInt(n.slice(2, 4), 16), b = parseInt(n.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function hueOf(hex) {
+  const n = hex.replace('#', '');
+  const r = parseInt(n.slice(0, 2), 16) / 255, g = parseInt(n.slice(2, 4), 16) / 255, b = parseInt(n.slice(4, 6), 16) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (!d) return 0.1;
+  let h;
+  if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+  return ((h / 6) + 1) % 1;
+}
+</script>
+</body>
+</html>
