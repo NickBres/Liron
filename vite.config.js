@@ -1,13 +1,17 @@
-export default {
-  root: '.',
-  server: { open: '/Liron.dc.html', host: true },
-  plugins: [{
-    name: 'redirect-root-to-card',
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        if (req.url === '/') { res.writeHead(302, { Location: '/Liron.dc.html' }); res.end(); return; }
-        next();
-      });
-    }
-  }]
-};
+import { defineConfig } from 'vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
+
+export default defineConfig(({ mode }) => {
+  const useLocalHttps = mode === 'https';
+
+  return {
+    root: '.',
+    base: mode === 'production' ? '/Liron/' : '/',
+    server: {
+      open: useLocalHttps ? false : '/',
+      host: true,
+      https: useLocalHttps
+    },
+    plugins: useLocalHttps ? [basicSsl()] : []
+  };
+});

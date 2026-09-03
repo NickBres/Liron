@@ -3,10 +3,28 @@
    additive sprite + halo pass instead of UnrealBloom. */
 (function () {
   const SETTINGS = window.projectSettings.particles;
+  const AR_SETTINGS = window.projectSettings.ar || {};
   const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js';
   const CLOUDS = {};
-  let threeP = null, postProcessingP = null;
+  let threeP = null, postProcessingP = null, zapparP = null;
   const loadThree = () => (threeP || (threeP = import(THREE_URL)));
+  const loadZappar = THREE => {
+    if (window.ZapparThree) return Promise.resolve(window.ZapparThree);
+    if (zapparP) return zapparP;
+    // The official standalone bundle consumes THREE from the global scope.
+    window.THREE = THREE;
+    zapparP = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = AR_SETTINGS.sdkUrl;
+      script.async = true;
+      script.onload = () => window.ZapparThree
+        ? resolve(window.ZapparThree)
+        : reject(new Error('The AR tracking library did not initialize.'));
+      script.onerror = () => reject(new Error('The AR tracking library could not be loaded.'));
+      document.head.appendChild(script);
+    });
+    return zapparP;
+  };
   const loadPostProcessing = () => (postProcessingP || (postProcessingP = Promise.all([
     import('three/addons/postprocessing/EffectComposer.js'),
     import('three/addons/postprocessing/RenderPass.js'),
@@ -222,8 +240,11 @@
       sc.fog = new THREE.FogExp2(SETTINGS.scene.backgroundColor, SETTINGS.scene.fogDensity);
       const { fov, near, far, distance } = SETTINGS.scene.camera;
       const cam = this.camera = new THREE.PerspectiveCamera(fov, 1, near, far);
+      this._regularCamera = cam;
+      this._regularFog = sc.fog;
       cam.position.set(0, 0, distance);
-      this.group = new THREE.Group(); sc.add(this.group);
+      this.worldRoot = new THREE.Group(); sc.add(this.worldRoot);
+      this.group = new THREE.Group(); this.worldRoot.add(this.group);
 
       // buffers
       this.cur = new Float32Array(N * 3);
@@ -274,7 +295,7 @@
       dg.setAttribute('size', new THREE.BufferAttribute(ds, 1));
       dg.setAttribute('acolor', new THREE.BufferAttribute(dc, 3));
       this.dust = new THREE.Points(dg, mk(SETTINGS.appearance.dust.scale, SETTINGS.appearance.dust.opacity));
-      sc.add(this.dust);
+      this.worldRoot.add(this.dust);
 
       // dedicated firework sparks — independent of the persistent cloud, so they never get
       // pulled back into the forming shape; own colors, own physics, short-lived.
@@ -300,7 +321,7 @@
         vel: new Float32Array(FW * 3), life: new Float32Array(FW), maxLife: new Float32Array(FW) };
       this.fwPoints = new THREE.Points(fwGeo, fwMat);
       this.fwPoints.renderOrder = SETTINGS.fireworks.renderOrder;
-      sc.add(this.fwPoints);
+      this.worldRoot.add(this.fwPoints);
 
       this.palette = { h: SETTINGS.appearance.palette.startHue, h2: SETTINGS.appearance.palette.endHue };
       this.time = 0; this.morph = null; this.burstAmp = 0; this.spin = SETTINGS.animation.defaultSpin;
@@ -326,6 +347,7 @@
       this._unlockAudio && document.removeEventListener('pointerdown', this._unlockAudio, true);
       this._twinkle && this._twinkle.pause();
       this._initSound && this._initSound.pause();
+      this._arCamera && this._arCamera.stop && this._arCamera.stop();
     }
 
     _setupAudio() {
@@ -389,7 +411,8 @@
           ? new this.THREE.WebGLRenderTarget(1, 1, { type: this.THREE.HalfFloatType })
           : undefined;
         this.composer = new EffectComposer(this.renderer, target);
-        this.composer.addPass(new RenderPass(this.scene, this.camera));
+        this.renderPass = new RenderPass(this.scene, this.camera);
+        this.composer.addPass(this.renderPass);
         this.bloomPass = new UnrealBloomPass(new this.THREE.Vector2(), bloom.strength, bloom.radius, bloom.threshold);
         this.composer.addPass(this.bloomPass);
         this.composer.addPass(new OutputPass());
@@ -411,6 +434,12 @@
     _onMove(e) {
       if (!this._pointers.has(e.pointerId)) return;
       this._pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this._isAR) {
+        const dx = e.clientX - this._drag.lastX, dy = e.clientY - this._drag.lastY;
+        if (Math.abs(dx) + Math.abs(dy) > 4) this._drag.moved = true;
+        this._drag.lastX = e.clientX; this._drag.lastY = e.clientY;
+        return;
+      }
       if (this._pointers.size === 2) {
         const d = this._pinchDist();
         if (this._pinchD0) this._camDist = clamp(this._camDist0 * (this._pinchD0 / d), SETTINGS.interaction.cameraDistance.min, SETTINGS.interaction.cameraDistance.max);
@@ -465,12 +494,15 @@
       const w = this.clientWidth || window.innerWidth, h = this.clientHeight || window.innerHeight;
       this.renderer.setSize(w, h, false);
       this.composer && this.composer.setSize(w, h);
-      this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
+      if (!this._isAR) {
+        this.camera.aspect = w / h;
+        this.camera.updateProjectionMatrix();
+      }
       const { fov, distance } = SETTINGS.scene.camera;
       const vh = 2 * distance * Math.tan((fov / 2) * Math.PI / 180), vw = vh * (w / h);
       this.viewW = vw; this.viewH = vh;
       this.size = Math.min(vw * SETTINGS.scene.shapeWidthFraction, vh * SETTINGS.scene.shapeHeightFraction);
-      const pix = h * SETTINGS.scene.pointPixelHeightFraction;
+      const pix = h * SETTINGS.scene.pointPixelHeightFraction * (this._isAR ? AR_SETTINGS.pointSizeScale : 1);
       [this.matCore, this.matHalo, this.dust.material].forEach(m => { m.uniforms.uPix.value = pix; });
       if (this.fwPoints) this.fwPoints.material.uniforms.uPix.value = pix;
     }
@@ -520,6 +552,51 @@
       this.matCore.uniforms.uOp.value = SETTINGS.appearance.core.opacity * Math.pow(v, 0.5);
     }
     setPalette(h, h2) { this.palette = { h, h2 }; this._colorize(); }
+
+    /** Preload tracking without requesting camera access. */
+    prepareAR() {
+      if (!AR_SETTINGS.enabled) return Promise.resolve({ supported: false, reason: 'disabled' });
+      return this.ready.then(() => loadZappar(this.THREE)).then(ZapparThree => {
+        this._zappar = ZapparThree;
+        ZapparThree.glContextSet(this.renderer.getContext());
+        return { supported: !ZapparThree.browserIncompatible() };
+      });
+    }
+
+    /** Called directly from the AR choice so browser permission remains user-initiated. */
+    startAR() {
+      const ZapparThree = this._zappar;
+      if (!ZapparThree) return Promise.reject(new Error('AR is still loading. Please try again.'));
+      if (ZapparThree.browserIncompatible()) return Promise.reject(new Error('AR tracking is not supported in this browser.'));
+      const permission = ZapparThree.permissionRequest();
+      return permission.then(granted => {
+        if (!granted) throw new Error('Camera and motion permission are required for AR.');
+        if (this._isAR) return this;
+
+        const placement = AR_SETTINGS.placement;
+        const camera = this._arCamera = new ZapparThree.Camera({
+          zNear: SETTINGS.scene.camera.near,
+          zFar: AR_SETTINGS.cameraFar || 100
+        });
+        const tracker = this._arTracker = new ZapparThree.InstantWorldTracker();
+        camera.setPoseModeAnchorOrigin(tracker.anchor);
+        this.camera = camera;
+        this.renderPass && (this.renderPass.camera = camera);
+        this.scene.background = camera.backgroundTexture;
+        this.scene.fog = null;
+        this.worldRoot.scale.setScalar(AR_SETTINGS.contentScale);
+        this._isAR = true;
+        this._arPlaced = false;
+        tracker.setAnchorPoseFromCameraOffset(placement.x, placement.y, -placement.distance);
+        camera.start();
+        this._resize();
+        return this;
+      });
+    }
+
+    placeAR() { this._arPlaced = true; }
+    beginARPlacement() { if (this._isAR) this._arPlaced = false; }
+    isARMode() { return !!this._isAR; }
 
     /** spec: {shape:'heart'} | {lines:['..','..']} */
     morphTo(spec, dur) {
@@ -628,6 +705,13 @@
     _tick() {
       const dt = Math.min(0.05, this._clock.getDelta());
       this.time += dt;
+      if (this._isAR && this._arCamera) {
+        this._arCamera.updateFrame(this.renderer);
+        if (!this._arPlaced && this._arTracker) {
+          const placement = AR_SETTINGS.placement;
+          this._arTracker.setAnchorPoseFromCameraOffset(placement.x, placement.y, -placement.distance);
+        }
+      }
       const T = this.time, N = this.N, pos = this.cur;
       if (this.morph) {
         this.morph.t += dt / this.morph.dur;
@@ -676,9 +760,9 @@
       this.group.rotation.y += (this._userRot.y - (this._appliedRot || 0)) * 1;
       this._appliedRot = this._userRot.y;
       this.group.rotation.x += (Math.sin(T * 0.22) * 0.06 + this._userRot.x - this.group.rotation.x) * 0.08;
-      this.camera.position.z += (this._camDist - this.camera.position.z) * 0.12;
+      if (!this._isAR) this.camera.position.z += (this._camDist - this.camera.position.z) * 0.12;
       this.dust.rotation.y += dt * 0.006;
-      if (this.composer) this.composer.render();
+      if (this.composer && (!this._isAR || AR_SETTINGS.postProcessing)) this.composer.render();
       else this.renderer.render(this.scene, this.camera);
     }
   }

@@ -3,9 +3,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --open /Liron.dc.html"
+    "dev": "vite --open /",
+    "dev:https": "vite --mode https --open /",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^5.4.11"
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "vite": "^8.2.2"
   }
 }
