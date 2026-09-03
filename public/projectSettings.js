@@ -6,20 +6,6 @@
  * with non-particle settings as the project grows.
  */
 window.projectSettings = {
-  ar: {
-    enabled: true,
-    // Zappar works on localhost for development. A self-hosted production domain
-    // must be registered with an active ZapWorks Universal AR subscription.
-    sdkUrl: 'https://libs.zappar.com/zappar-threejs/4.3.0/zappar-threejs.js',
-    cameraFar: 100,
-    contentScale: 0.11,
-    pointSizeScale: 0.12,
-    // The preview follows this point until the user taps to place it.
-    placement: { x: 0, y: 0, distance: 2.0 },
-    // Sprite halos still glow in AR. Full-screen bloom stays off so bright areas
-    // in the real camera image do not bloom with the particles.
-    postProcessing: false
-  },
   particles: {
     performance: {
       compactViewportMax: 520,
@@ -105,18 +91,6 @@ window.projectSettings = {
     }
   },
   experience: {
-    modePicker: {
-      eyebrow: 'מתנה קטנה בשבילך',
-      title: 'איך תרצי לפתוח את הקסם?',
-      arTitle: 'בתוך החדר',
-      arSubtitle: 'מציאות רבודה',
-      regularTitle: 'על המסך',
-      regularSubtitle: 'החוויה המקורית',
-      arLoading: 'מכינה את המצלמה…',
-      arPlace: 'כווני למקום שבו תרצי שהקסם יופיע',
-      arPlaceAction: 'נגיעה להצבה ולהתחלה',
-      reposition: 'מיקום מחדש'
-    },
     // Temporary testing shortcut: bypass both video clues and their answer prompts.
     skipClueGate: false
   }

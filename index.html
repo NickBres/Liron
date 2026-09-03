@@ -27,58 +27,11 @@ input{font-family:inherit}
 @keyframes om-glass-dismiss{from{opacity:1;transform:none;background:var(--glass-surface);border-color:var(--glass-border);box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur))}to{opacity:0;transform:translateY(-12px);background:rgba(255,255,255,0);border-color:rgba(255,255,255,0);box-shadow:0 4px 30px rgba(0,0,0,0);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}}
 .om-glass-panel{--glass-surface:rgba(255,255,255,.035);--glass-border:rgba(255,255,255,.14);--glass-blur:6.7px;background:var(--glass-surface);border:1px solid var(--glass-border);border-radius:16px;box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));animation:om-glass-reveal 1.6s cubic-bezier(.2,.7,.2,1) both}
 .om-glass-panel--leaving{pointer-events:none;animation:om-glass-dismiss .65s cubic-bezier(.4,0,.2,1) forwards}
-.om-mode-screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:calc(28px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom));box-sizing:border-box;background:radial-gradient(circle at 50% 38%,rgba(71,42,99,.3),rgba(0,0,0,.94) 68%);color:#f7ecdd}
-.om-mode-card{width:100%;max-width:430px;text-align:center;padding:34px 22px 26px;box-sizing:border-box}
-.om-mode-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:32px}
-.om-mode-option{cursor:pointer;min-height:118px;padding:18px 12px;border:1px solid rgba(201,166,255,.3);border-radius:16px;background:rgba(255,255,255,.035);box-shadow:0 4px 30px rgba(0,0,0,.16);backdrop-filter:blur(6.7px);-webkit-backdrop-filter:blur(6.7px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:transform .25s ease,border-color .25s ease,opacity .25s ease}
-.om-mode-option:active{transform:scale(.97)}
-.om-ar-reticle{width:74px;height:74px;border:1px solid rgba(247,236,221,.7);border-radius:50%;position:relative;box-shadow:0 0 30px rgba(201,166,255,.22)}
-.om-ar-reticle:before,.om-ar-reticle:after{content:'';position:absolute;background:rgba(247,236,221,.8);left:50%;top:50%;transform:translate(-50%,-50%)}
-.om-ar-reticle:before{width:20px;height:1px}.om-ar-reticle:after{width:1px;height:20px}
 </style></helmet>
 <div style="position:fixed;inset:0;background:#000;overflow:hidden">
 <x-import component-from-global-scope="particle-stage" from="./particle-stage.js" hint-size="100%,100%" style="position:absolute;inset:0"></x-import>
-<div ref="{{ fwRef }}" style="position:absolute;inset:0;pointer-events:none;z-index:1;opacity:{{ fireworksLayerOpacity }}"></div>
+<div ref="{{ fwRef }}" style="position:absolute;inset:0;pointer-events:none;z-index:1"></div>
 <div style="position:absolute;inset:0;pointer-events:none;background:transparent"></div>
-
-<sc-if value="{{ chooseExperience }}" hint-placeholder-val="{{ true }}">
-<div dir="rtl" class="om-mode-screen" style="animation:om-fade .8s ease both">
-<div class="om-mode-card om-glass-panel">
-<div style="font:400 10px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};margin-bottom:18px">{{ modeEyebrow }}</div>
-<div style="font:400 clamp(25px,7vw,34px)/1.35 'Frank Ruhl Libre',serif">{{ modeTitle }}</div>
-<div class="om-mode-options">
-<div onClick="{{ selectAR }}" class="om-mode-option" style="opacity:{{ arOptionOpacity }}">
-<div style="font:600 11px/1 Heebo;letter-spacing:.2em;color:{{ accentSolid }}">AR</div>
-<div style="font:400 19px/1.25 'Frank Ruhl Libre',serif">{{ arTitle }}</div>
-<div style="font:300 11px/1.4 Heebo;color:rgba(247,236,221,.48)">{{ arSubtitle }}</div>
-</div>
-<div onClick="{{ selectRegular }}" class="om-mode-option">
-<div style="font:300 22px/1 Heebo;color:{{ accentSolid }}">&#9675;</div>
-<div style="font:400 19px/1.25 'Frank Ruhl Libre',serif">{{ regularTitle }}</div>
-<div style="font:300 11px/1.4 Heebo;color:rgba(247,236,221,.48)">{{ regularSubtitle }}</div>
-</div>
-</div>
-<sc-if value="{{ arStatusText }}" hint-placeholder-val="{{ false }}">
-<div style="margin-top:18px;font:300 12px/1.6 Heebo;color:rgba(247,236,221,.52)">{{ arStatusText }}</div>
-</sc-if>
-<sc-if value="{{ arError }}" hint-placeholder-val="{{ false }}">
-<div style="margin-top:16px;font:300 12px/1.65 Heebo;color:#f0b6c6">{{ arError }}</div>
-</sc-if>
-</div>
-</div>
-</sc-if>
-
-<sc-if value="{{ arPlacement }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ confirmARPlacement }}" dir="rtl" style="position:absolute;inset:0;z-index:20;pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px 28px;box-sizing:border-box;color:#f7ecdd;text-align:center">
-<div class="om-ar-reticle"></div>
-<div style="font:400 clamp(20px,5.8vw,27px)/1.45 'Frank Ruhl Libre',serif;text-shadow:0 2px 14px rgba(0,0,0,.9)">{{ arPlaceText }}</div>
-<div style="font:400 11px/1 Heebo;letter-spacing:.28em;color:rgba(247,236,221,.75);text-shadow:0 2px 10px #000">{{ arPlaceAction }}</div>
-</div>
-</sc-if>
-
-<sc-if value="{{ showARReposition }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ repositionAR }}" dir="rtl" style="position:absolute;z-index:15;top:calc(16px + env(safe-area-inset-top));left:16px;pointer-events:auto;cursor:pointer;padding:10px 12px;border:1px solid rgba(247,236,221,.2);border-radius:20px;background:rgba(0,0,0,.3);backdrop-filter:blur(6px);font:300 10px/1 Heebo;color:rgba(247,236,221,.72)">{{ repositionLabel }}</div>
-</sc-if>
 
 <div dir="rtl" style="position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 22px calc(30px + env(safe-area-inset-bottom));box-sizing:border-box;color:#f7ecdd">
 
@@ -193,17 +146,15 @@ class Component extends DCLogic {
   state = {
     step: 0, sub: 0, hint: false,
     clue: null, guess: '', wrong: false, vid: 0, playing: false, seen: {},
-    placeDone: false, actDone: false, solvedFlash: null, whyOpen: false, envelopeFormed: false, letterLeaving: false, whyLeaving: false, busy: true,
-    experienceMode: null, choiceReady: false, arReady: false, arSupported: false, arStatus: '', arError: '', arPlacement: false, arHasPlaced: false,
+    placeDone: false, actDone: false, solvedFlash: null, whyOpen: false, envelopeFormed: false, letterLeaving: false, whyLeaving: false, busy: true
   };
 
   componentDidMount() {
     this._t = [];
-    this._arFireworksTimer = null;
     this._fireworksAudioUnlocked = false;
     this._unlockFireworksAudio = () => { this._fireworksAudioUnlocked = true; this._resumeFireworksAudio(); };
     document.addEventListener('pointerdown', this._unlockFireworksAudio, { once: true, capture: true });
-    this._onTap = e => { if (this.state.experienceMode && !this.state.arPlacement) this.advance(e.detail && e.detail.y); };
+    this._onTap = e => this.advance(e.detail && e.detail.y);
     document.addEventListener('stagetap', this._onTap);
     this._find();
     import(/* @vite-ignore */ './fireworks.es.js').then(m => {
@@ -225,7 +176,6 @@ class Component extends DCLogic {
     document.removeEventListener('stagetap', this._onTap);
     this._unlockFireworksAudio && document.removeEventListener('pointerdown', this._unlockFireworksAudio, true);
     (this._t || []).forEach(clearTimeout);
-    clearInterval(this._arFireworksTimer);
     this._fireworks && this._fireworks.stop(true);
   }
   later(fn, ms) { const id = setTimeout(fn, ms); this._t.push(id); return id; }
@@ -236,56 +186,11 @@ class Component extends DCLogic {
       this.stage = el;
       ['giftbox3d', 'vase1', 'glass', 'plate', 'vase2', 'pin', 'lamb'].forEach(k => el.loadCloud(k, 'clouds/' + k + '.json'));
       this.applyProps();
-      this.setState({ choiceReady: true });
-      el.prepareAR()
-        .then(info => this.setState({ arReady: true, arSupported: info.supported }))
-        .catch(() => this.setState({
-          arReady: false,
-          arSupported: false,
-          arError: 'מצב המציאות הרבודה לא הצליח להיטען. החוויה הרגילה עדיין זמינה.'
-        }));
+      this.later(() => this.setState({ busy: false, hint: true }), 900);
       return;
     }
     if (n < 120) this.later(() => this._find(n + 1), 120);
   }
-
-  selectRegular = () => {
-    if (!this.stage) return;
-    this.setState({ experienceMode: 'regular', busy: false, hint: true, arStatus: '', arError: '' });
-  };
-
-  selectAR = () => {
-    const copy = window.projectSettings.experience.modePicker;
-    if (!this.state.arReady) {
-      this.setState({ arError: 'מצב המציאות הרבודה עדיין נטען. נסי שוב בעוד רגע.' });
-      return;
-    }
-    if (!this.state.arSupported) {
-      this.setState({ arError: 'מצב המציאות הרבודה זמין בטלפון עם מצלמה וחיישני תנועה.' });
-      return;
-    }
-    this.setState({ arStatus: copy.arLoading, arError: '' });
-    this.stage.startAR().then(() => {
-      this.setState({ experienceMode: 'ar', arPlacement: true, busy: true, hint: false, arStatus: '', arError: '' });
-    }).catch(() => {
-      this.setState({ arStatus: '', arError: 'לא הצלחנו לפתוח את המצלמה. אשרי גישה למצלמה ולתנועה ונסי שוב.' });
-    });
-  };
-
-  confirmARPlacement = () => {
-    if (!this.state.arPlacement || !this.stage) return;
-    const firstPlacement = !this.state.arHasPlaced;
-    this.stage.placeAR();
-    this.setState({ arPlacement: false, arHasPlaced: true, busy: firstPlacement, hint: !firstPlacement });
-    if (firstPlacement) this.scene(0, 0);
-  };
-
-  repositionAR = () => {
-    if (!this.stage || !this.stage.isARMode()) return;
-    this.stopFireworks();
-    this.stage.beginARPlacement();
-    this.setState({ arPlacement: true, busy: true, hint: false });
-  };
 
   applyProps() {
     const s = this.stage; if (!s) return;
@@ -329,20 +234,8 @@ class Component extends DCLogic {
     const context = this._fireworks && this._fireworks.sound && this._fireworks.sound.audioContext;
     if (this._fireworksAudioUnlocked && context && context.state === 'suspended') context.resume().catch(() => {});
   }
-  startFireworks() {
-    this._resumeFireworksAudio();
-    this._fireworks && this._fireworks.start();
-    if (this.stage && this.stage.isARMode()) {
-      clearInterval(this._arFireworksTimer);
-      const launch = () => this.stage && this.stage.firework();
-      launch();
-      this._arFireworksTimer = setInterval(launch, 650);
-    }
-  }
-  stopFireworks() {
-    clearInterval(this._arFireworksTimer); this._arFireworksTimer = null;
-    this._fireworks && this._fireworks.stop();
-  }
+  startFireworks() { this._resumeFireworksAudio(); this._fireworks && this._fireworks.start(); }
+  stopFireworks() { this._fireworks && this._fireworks.stop(); }
 
   restart() {
     this.stopFireworks();
@@ -357,8 +250,7 @@ class Component extends DCLogic {
   go(step, sub = 0) { this.setState({ step, sub }); this.scene(step, sub); }
 
   advance(y) {
-    const { step, sub, clue, whyOpen, envelopeFormed, letterLeaving, whyLeaving, busy, experienceMode, arPlacement } = this.state;
-    if (!experienceMode || arPlacement) return;
+    const { step, sub, clue, whyOpen, envelopeFormed, letterLeaving, whyLeaving, busy } = this.state;
     if (clue || whyOpen || letterLeaving || whyLeaving || busy) return;
     if (!TAP_STEPS.includes(step)) return;
     // restricted to the bottom band so tapping never fights orbit/zoom drag on the shape.
@@ -452,7 +344,6 @@ class Component extends DCLogic {
   renderVals() {
     const st = this.state, mode = this.props.wishesMode || 'letter';
     const content = window.projectContent || {};
-    const picker = window.projectSettings.experience.modePicker || {};
     const letter = content.letter || {}, glassExplanation = content.glassExplanation || {};
     const place = st.clue === 'place';
     const hintable = TAP_STEPS.includes(st.step);
@@ -462,25 +353,6 @@ class Component extends DCLogic {
     const accentBorderStrong = hexToRgba(accent, 0.55);
     return {
       fwRef: el => { this._fwEl = el; },
-      chooseExperience: !st.experienceMode,
-      fireworksLayerOpacity: st.experienceMode === 'ar' ? 0 : 1,
-      modeEyebrow: picker.eyebrow || '',
-      modeTitle: picker.title || '',
-      arTitle: picker.arTitle || 'AR',
-      arSubtitle: picker.arSubtitle || '',
-      regularTitle: picker.regularTitle || '',
-      regularSubtitle: picker.regularSubtitle || '',
-      arStatusText: st.arStatus || (!st.arReady && !st.arError ? picker.arLoading : ''),
-      arError: st.arError,
-      arOptionOpacity: st.arReady && st.arSupported && !st.arStatus ? 1 : 0.45,
-      selectAR: this.selectAR,
-      selectRegular: this.selectRegular,
-      arPlacement: st.arPlacement,
-      arPlaceText: picker.arPlace || '',
-      arPlaceAction: picker.arPlaceAction || '',
-      confirmARPlacement: this.confirmARPlacement,
-      showARReposition: st.experienceMode === 'ar' && st.arHasPlaced && !st.arPlacement && !st.busy && !st.clue && !st.whyOpen,
-      repositionLabel: picker.reposition || '', repositionAR: this.repositionAR,
       videoRef: this.videoRef,
       letterEyebrow: letter.eyebrow || '', letterBody: letter.body || '', letterFooter: letter.footer || '',
       glassExplanationEyebrow: glassExplanation.eyebrow || '', glassExplanationBody: glassExplanation.body || '', glassExplanationFooter: glassExplanation.footer || '',
@@ -488,7 +360,7 @@ class Component extends DCLogic {
       glassExplanationClass: st.whyLeaving ? 'om-glass-panel om-glass-panel--leaving' : 'om-glass-panel',
       accentText, accentBorder, accentBorderStrong, accentSolid: accent,
       accentSolid2: hexToRgba(accent, 0.72), accentGlowBg: hexToRgba(accent, 0.18),
-      showHint: !!st.experienceMode && !st.arPlacement && (this.props.showHints ?? true) && st.hint && hintable && !st.clue && !st.whyOpen && !st.solvedFlash,
+      showHint: (this.props.showHints ?? true) && st.hint && hintable && !st.clue && !st.whyOpen && !st.solvedFlash,
       hintLabel: st.step === 6 ? 'לפתיחה' : 'להמשך',
       atLetter: st.step === 4 && mode === 'letter',
       atClues: st.step === 6 && !st.clue && !st.solvedFlash,
