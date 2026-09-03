@@ -26,6 +26,7 @@ input{font-family:inherit}
 @keyframes om-glass-reveal{from{opacity:0;transform:translateY(12px);background:rgba(255,255,255,0);border-color:rgba(255,255,255,0);box-shadow:0 4px 30px rgba(0,0,0,0);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}to{opacity:1;transform:none;background:var(--glass-surface);border-color:var(--glass-border);box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur))}}
 @keyframes om-glass-dismiss{from{opacity:1;transform:none;background:var(--glass-surface);border-color:var(--glass-border);box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur))}to{opacity:0;transform:translateY(-12px);background:rgba(255,255,255,0);border-color:rgba(255,255,255,0);box-shadow:0 4px 30px rgba(0,0,0,0);backdrop-filter:blur(0);-webkit-backdrop-filter:blur(0)}}
 .om-glass-panel{--glass-surface:rgba(255,255,255,.035);--glass-border:rgba(255,255,255,.14);--glass-blur:6.7px;background:var(--glass-surface);border:1px solid var(--glass-border);border-radius:16px;box-shadow:0 4px 30px rgba(0,0,0,.1);backdrop-filter:blur(var(--glass-blur));-webkit-backdrop-filter:blur(var(--glass-blur));animation:om-glass-reveal 1.6s cubic-bezier(.2,.7,.2,1) both}
+.om-reading-panel{pointer-events:auto;touch-action:pan-y;width:100%;max-width:430px;max-height:calc(100vh - 120px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:30px 24px;box-sizing:border-box}
 .om-glass-panel--leaving{pointer-events:none;animation:om-glass-dismiss .65s cubic-bezier(.4,0,.2,1) forwards}
 </style></helmet>
 <div style="position:fixed;inset:0;background:#000;overflow:hidden">
@@ -43,10 +44,10 @@ input{font-family:inherit}
 </sc-if>
 
 <sc-if value="{{ atLetter }}" hint-placeholder-val="{{ false }}">
-<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:34px 26px;box-sizing:border-box">
-<div class="{{ letterGlassClass }}" style="width:100%;max-width:430px;padding:30px 24px;box-sizing:border-box">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:34px 26px 86px;box-sizing:border-box">
+<div class="{{ letterGlassClass }} om-reading-panel">
 <div style="font:400 11px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};margin-bottom:22px;text-align:center">{{ letterEyebrow }}</div>
-<p style="font:300 clamp(19px,5.2vw,24px)/1.9 'Frank Ruhl Libre',serif;color:#f7ecdd;margin:0;text-align:center;text-wrap:pretty">{{ letterBody }}</p>
+<p style="font:300 clamp(19px,5.2vw,24px)/1.9 'Frank Ruhl Libre',serif;color:#f7ecdd;margin:0;text-align:center;text-wrap:pretty;white-space:pre-line">{{ letterBody }}</p>
 <div style="font:300 12px/1 Heebo;letter-spacing:.3em;color:rgba(247,236,221,.32);margin-top:30px;text-align:center">{{ letterFooter }}</div>
 </div>
 </div>
@@ -68,15 +69,7 @@ input{font-family:inherit}
 <div onClick="{{ closeClue }}" style="position:absolute;top:calc(18px + env(safe-area-inset-top));left:22px;cursor:pointer;font:300 12px/1 Heebo;letter-spacing:.24em;color:rgba(247,236,221,.5)">חזרה</div>
 <div style="width:100%;max-width:390px;display:flex;flex-direction:column;gap:22px">
 <div style="position:relative;flex:0 0 auto;width:min(78vw,320px);aspect-ratio:9/12;max-height:46vh;align-self:center;border:1px solid {{ accentBorder }};background:#0a0810;overflow:hidden">
-<video ref="{{ videoRef }}" src="{{ clueVideoSrc }}" playsinline="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>
-<sc-if value="{{ videoIdle }}" hint-placeholder-val="{{ true }}">
-<div onClick="{{ playVideo }}" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:22px;cursor:pointer;background:radial-gradient(70% 50% at 50% 60%,{{ accentGlowBg }},rgba(10,8,16,.6) 72%)">
-<div style="width:52px;height:52px;border:1px solid rgba(247,236,221,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;font:300 15px/1 Heebo;padding-right:2px">▶</div>
-<div style="font:600 10px/1 Heebo;letter-spacing:.34em;color:{{ accentText }}">{{ clueKicker }}</div>
-<div style="font:300 12px/1.8 Heebo;color:rgba(247,236,221,.42);max-width:230px">{{ clueVideoNote }}</div>
-</div>
-</sc-if>
-<div style="position:absolute;bottom:0;right:0;left:0;height:2px;background:rgba(247,236,221,.15)"><div style="height:100%;background:linear-gradient(90deg,{{ accentSolid }},{{ accentSolid2 }});transition:width .1s linear;width:{{ videoPct }}"></div></div>
+<video ref="{{ videoRef }}" src="{{ clueVideoSrc }}" controls="true" playsinline="true" webkit-playsinline="true" preload="auto" style="pointer-events:auto;touch-action:manipulation;position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:cover;background:#000"></video>
 </div>
 <sc-if value="{{ askGuess }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:16px;animation:om-rise .8s ease both;margin-top:auto">
@@ -109,11 +102,11 @@ input{font-family:inherit}
 </sc-if>
 
 <sc-if value="{{ whyOpen }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ finishWhy }}" style="pointer-events:auto;cursor:pointer;position:absolute;inset:0;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:34px 26px;box-sizing:border-box">
-<div class="{{ glassExplanationClass }}" style="width:100%;max-width:430px;padding:30px 24px;box-sizing:border-box">
-<div style="font:400 11px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};text-align:center;margin-bottom:24px">{{ glassExplanationEyebrow }}</div>
-<p style="font:300 clamp(18px,5.2vw,23px)/1.95 'Frank Ruhl Libre',serif;margin:0;text-align:center;text-wrap:pretty;color:#f7ecdd">{{ glassExplanationBody }}</p>
-<div style="font:300 12px/1 Heebo;letter-spacing:.3em;color:rgba(247,236,221,.32);margin-top:32px;text-align:center">{{ glassExplanationFooter }}</div>
+<div onClick="{{ finishWhy }}" style="pointer-events:auto;cursor:pointer;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:34px 26px 86px;box-sizing:border-box">
+<div class="{{ glassExplanationClass }} om-reading-panel">
+<div style="font:400 11px/1 Heebo;letter-spacing:.42em;color:{{ accentText }};margin-bottom:22px;text-align:center">{{ glassExplanationEyebrow }}</div>
+<p style="font:300 clamp(19px,5.2vw,24px)/1.9 'Frank Ruhl Libre',serif;color:#f7ecdd;margin:0;text-align:center;text-wrap:pretty;white-space:pre-line">{{ glassExplanationBody }}</p>
+<div style="font:300 12px/1 Heebo;letter-spacing:.3em;color:rgba(247,236,221,.32);margin-top:30px;text-align:center">{{ glassExplanationFooter }}</div>
 </div>
 </div>
 </sc-if>
@@ -145,7 +138,7 @@ const ACT_RE = /זכוכ|נפיח|glass|blow/i;
 class Component extends DCLogic {
   state = {
     step: 0, sub: 0, hint: false,
-    clue: null, guess: '', wrong: false, vid: 0, playing: false, seen: {},
+    clue: null, guess: '', wrong: false, seen: {},
     placeDone: false, actDone: false, solvedFlash: null, whyOpen: false, envelopeFormed: false, letterLeaving: false, whyLeaving: false, busy: true
   };
 
@@ -241,7 +234,7 @@ class Component extends DCLogic {
     this.stopFireworks();
     (this._t || []).forEach(clearTimeout); this._t = [];
     this.setState({
-      step: 0, sub: 0, hint: false, clue: null, guess: '', wrong: false, vid: 0, playing: false,
+      step: 0, sub: 0, hint: false, clue: null, guess: '', wrong: false,
       seen: {}, placeDone: false, actDone: false, solvedFlash: null, whyOpen: false, envelopeFormed: true, letterLeaving: false, whyLeaving: false, busy: true
     });
     this.later(() => this.scene(0, 0), 700);
@@ -305,26 +298,19 @@ class Component extends DCLogic {
   openClue(which) {
     this._videoEl && this._videoEl.pause();
     const seen = this.state.seen[which];
-    this.setState({ clue: which, guess: '', wrong: false, vid: seen ? 100 : 0, playing: false });
+    this.setState({ clue: which, guess: '', wrong: false });
   }
   videoRef = el => {
     this._videoEl = el;
-    if (el) { el.addEventListener('timeupdate', this.onVideoTime); el.addEventListener('ended', this.onVideoEnded); }
-  };
-  playVideo = () => {
-    const v = this._videoEl;
-    if (!v || this.state.playing) return;
-    if (this.state.seen[this.state.clue]) v.currentTime = 0;
-    v.play();
-    this.setState({ playing: true });
-  };
-  onVideoTime = () => {
-    const v = this._videoEl;
-    if (!v || !v.duration) return;
-    this.setState({ vid: (v.currentTime / v.duration) * 100 });
+    if (el) {
+      el.controls = true;
+      el.playsInline = true;
+      el.preload = 'auto';
+      el.addEventListener('ended', this.onVideoEnded);
+    }
   };
   onVideoEnded = () => {
-    this.setState(st => ({ playing: false, vid: 100, seen: { ...st.seen, [st.clue]: true } }));
+    this.setState(st => ({ seen: { ...st.seen, [st.clue]: true } }));
   };
   submitGuess = () => {
     const { clue, guess } = this.state;
@@ -377,19 +363,14 @@ class Component extends DCLogic {
       finishWhy: this.finishWhy,
       solvedFlash: st.solvedFlash,
       clueOpen: !!st.clue,
-      clueKicker: place ? 'סרטון ראשון' : 'סרטון שני',
-      clueVideoNote: place ? 'לחצו לצפייה' : 'לחצו לצפייה',
       clueVideoSrc: place ? './videos/caesaria.mp4' : './videos/glass-blow.mp4',
-      videoIdle: !st.playing && !st.seen[st.clue],
       cluePrompt: place ? 'לאן נוסעים?' : 'מה אנחנו עושים שם?',
-      videoPct: st.vid.toFixed(0) + '%',
-      askGuess: !!st.seen[st.clue] && !st.playing,
+      askGuess: !!st.seen[st.clue],
       guess: st.guess,
       wrong: st.wrong,
       glassLabel: GLASS[Math.min(st.sub, GLASS.length - 1)].label,
       glassCount: (st.sub + 1) + ' / ' + GLASS.length,
-      closeClue: () => { this._videoEl && this._videoEl.pause(); this.setState({ clue: null, playing: false, wrong: false }); },
-      playVideo: this.playVideo,
+      closeClue: () => { this._videoEl && this._videoEl.pause(); this.setState({ clue: null, wrong: false }); },
       submitGuess: this.submitGuess,
       onGuess: e => this.setState({ guess: e.target.value, wrong: false }),
       onGuessKey: e => { if (e.key === 'Enter') this.submitGuess(); },
