@@ -320,6 +320,7 @@
     }
 
     disconnectedCallback() {
+      this.atosFireworks?.stop(true);
       cancelAnimationFrame(this._raf);
       this._ro && this._ro.disconnect();
       this.composer && this.composer.dispose();
@@ -671,6 +672,7 @@
         this.matCore.uniforms.uSize.value = dense;
       }
       if (this.fw) this._tickFireworks(dt);
+      this.atosFireworks?.update(dt);
       const gy = this.group.rotation.y;
       this.group.rotation.y = gy + (this.spin ? 0.16 * dt * this.spin : (0 - gy) * 0.05) ;
       this.group.rotation.y += (this._userRot.y - (this._appliedRot || 0)) * 1;

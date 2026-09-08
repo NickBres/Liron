@@ -150,22 +150,23 @@ class Component extends DCLogic {
     this._onTap = e => this.advance(e.detail && e.detail.y);
     document.addEventListener('stagetap', this._onTap);
     this._find();
-    import(/* @vite-ignore */ './fireworks.es.js').then(m => {
-      if (!this._fwEl) return;
-      const accent = this.props.accent || '#c9a6ff';
-      const hue = Math.round(hueOf(accent) * 360);
-      const fireworkSound = window.projectSettings.particles.audio.fireworks;
-      this._fireworks = new m.Fireworks(this._fwEl, {
-        hue: { min: hue - 26, max: hue + 30 }, rocketsPoint: { min: 25, max: 75 },
-        opacity: 0.4, acceleration: 1.02, friction: 0.97, gravity: 1.1,
-        particles: 32, explosion: 4, brightness: { min: 65, max: 90 }, decay: { min: 0.015, max: 0.03 },
-        delay: { min: 90, max: 150 }, traceLength: 3, traceSpeed: 6, autoresize: true,
-        sound: fireworkSound
+    this._fireworksWanted = false;
+    import(/* @vite-ignore */ './atos-fireworks.js').then(async m => {
+      await customElements.whenDefined('particle-stage');
+      const stage = document.querySelector('particle-stage');
+      if (!stage) return;
+      await stage.ready;
+      if (this._unmounted || !stage.isConnected) return;
+      this._fireworks = new m.Fireworks(stage, {
+        sound: window.projectSettings.particles.audio.fireworks,
+        trajectory: window.projectSettings.particles.fireworks
       });
       this._resumeFireworksAudio();
-    });
+      if (this._fireworksWanted) this._fireworks.start();
+    }).catch(error => console.error('Could not initialize fireworks', error));
   }
   componentWillUnmount() {
+    this._unmounted = true;
     document.removeEventListener('stagetap', this._onTap);
     this._unlockFireworksAudio && document.removeEventListener('pointerdown', this._unlockFireworksAudio, true);
     (this._t || []).forEach(clearTimeout);
@@ -224,11 +225,10 @@ class Component extends DCLogic {
   }
 
   _resumeFireworksAudio() {
-    const context = this._fireworks && this._fireworks.sound && this._fireworks.sound.audioContext;
-    if (this._fireworksAudioUnlocked && context && context.state === 'suspended') context.resume().catch(() => {});
+    if (this._fireworksAudioUnlocked) this._fireworks?.unlockAudio();
   }
-  startFireworks() { this._resumeFireworksAudio(); this._fireworks && this._fireworks.start(); }
-  stopFireworks() { this._fireworks && this._fireworks.stop(); }
+  startFireworks() { this._fireworksWanted = true; this._resumeFireworksAudio(); this._fireworks?.start(); }
+  stopFireworks() { this._fireworksWanted = false; this._fireworks?.stop(); }
 
   restart() {
     this.stopFireworks();

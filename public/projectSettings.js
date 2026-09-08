@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Central project configuration.
  *
  * Keep project-wide knobs here so visual tuning does not require hunting through
@@ -82,9 +82,13 @@ window.projectSettings = {
       }
     },
     fireworks: {
-      capacity: 900,
-      glowIntensity: 2.4,
-      gravitySizeMultiplier: -0.045,
+      capacity: 9000,
+      glowIntensity: 5,
+      gravitySizeMultiplier: -0.03,
+      launchY: -16,
+      // ATOS shells burst inside this vertical band instead of flying above the view.
+      burstY: { min: -6, max: 10 },
+      flightTime: { min: 0.85, max: 1.15 },
       // Negative Z is farther from the camera. Keep sparks behind the main form.
       depth: { min: -12, max: -9, velocityMultiplier: 0.3 },
       renderOrder: -1
